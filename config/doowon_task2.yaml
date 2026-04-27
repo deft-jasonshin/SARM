@@ -1,0 +1,105 @@
+_target_: workspace.doowon_task2_ws.DoowonTask2Workspace
+
+cfg:
+  general:
+    # dataset specific
+    project_name: "reward_doowon_task2"
+    task_name: "doowon_task2"
+    repo_id_sparse: PATH_TO_YOUR/SPARSE_LEROBOT_DATASET"  # path to the huggingface lerobot dataset: USR_NAME/DATASET
+    repo_id_dense: PATH_TO_YOUR/DENSE_LEROBOT_DATASET"    # path to the huggingface lerobot dataset: USR_NAME/DATASET
+    state_norm_path: PATH_TO_YOUR/NORM_STATS # path to the task specific norm stats file, example can be found at "assets/fold_tshirt.json"
+    camera_names:  [top_camera-images-rgb]
+    seed: 42
+    device: "cuda" 
+
+  dataloader:
+    batch_size: 32
+    num_workers: 6
+    shuffle: True
+    pin_memory: True
+    persistent_workers: True
+
+  val_dataloader:
+    batch_size: 16
+    num_workers: 6
+    shuffle: False
+    pin_memory: True
+    persistent_workers: True
+
+  rollout_dataloader:
+    batch_size: 1 
+    num_workers: 6
+    shuffle: True
+    pin_memory: True
+    persistent_workers: True
+
+  encoders:               
+    # CLIP
+    vision_ckpt: "openai/clip-vit-base-patch32"
+    text_ckpt: "openai/clip-vit-base-patch32"
+
+  model:
+    d_model: 768          
+    n_layers: 8
+    n_heads: 12
+    dropout: 0.1
+    n_obs_steps: 8
+    max_rewind_steps: 4
+    frame_gap: 30
+    state_dim: 14
+    no_state: True
+    resume_training: False
+    model_path: ""
+
+    # Sparse anno
+    num_classes_sparse: 5 # num_classes = num_stage
+    sparse_annotation_list: [
+            "rotate the mobile base 90 degrees clockwise to face the picking station", 
+            "pick up one compressor part with the left arm, then pick up another compressor part with the right arm",
+            "rotate the mobile base 90 degrees counter-clockwise to face the conveyor belt",
+            "place the compressor parts into the jig on the conveyor belt",
+    ]
+
+    # Dense anno
+    num_classes_dense: 6 # num_classes = num_stage
+    dense_annotation_list: [
+            "rotate the mobile base 90 degrees clockwise to face the picking station", 
+            "pick up one compressor part with the left arm, then pick up another compressor part with the right arm",
+            "rotate the mobile base 90 degrees counter-clockwise to face the conveyor belt",
+            "place the compressor parts into the jig on the conveyor belt",
+            "lower the robot height and align the compressor parts with the jig openings"
+    ]
+
+  optim:
+    lr: 5e-5
+    weight_decay: 5.0e-3
+    betas: [0.9, 0.95]
+    eps: 1.0e-8
+    warmup_steps: 1000
+    total_steps: 150_000
+
+  train:
+    num_epochs: 5
+    grad_clip: 1.0
+    log_every: 4000          # steps
+    eval_every: 1          # epochs
+    save_every: 5_000      # steps
+    val_portion: 0.1       # fraction of episodes for validation
+
+  eval:
+    eval_frame_gap: 10
+
+    ckpt_path: "PATH/TO/YOUR/CHECKPOINT"    # path to the folder containing reward_best.pt
+    stage_model: "NAME_OF_STAGE_MODEL"      # name of the stage model, e.g. stage_best.pt
+    subtask_model: "NAME_OF_SUBTASK_MODEL"  # name of the subtask model, e.g. subtask_best.pt
+
+    # Evaluation type
+    model_type: "dense"       # "sparse" or "dense"
+    dataset_type: "sparse"    # "sparse" or "dense"
+    run_times: 60             # number of episodes to evaluate in dataset
+
+    # Raw data evaluation
+    raw_data_dir: "PATH/TO/YOUR/RAW/DATA"  # path to the folder containing raw robot trajectories for evaluation
+    raw_data_run_times: 60
+    
+    
