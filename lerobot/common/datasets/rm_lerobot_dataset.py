@@ -47,8 +47,12 @@ class FrameGapLeRobotDataset(LeRobotDataset):
         self.max_rewind_steps = max_rewind_steps
         self.timestamp_tensor = torch.tensor(self.hf_dataset["timestamp"]).flatten()
         assert all(img_name in self.meta.video_keys for img_name in image_names), f"Image names {image_names} not found in metadata video keys."
-        assert 'reward' in self.meta.features, f"'reward' (progress label) not found in dataset features."
-        self.wrapped_video_keys = image_names  # Use only the specified camera for videos
+
+        assert "dense_rewards" in self.meta.features and "subtask_idx" in self.meta.features, (
+            "Dataset must have 'dense_rewards' and 'subtask_idx' columns."
+        )
+
+        self.wrapped_video_keys = image_names
         self.verbs = ['move', 'grasp', 'rotate', 'push', 'pull', 'slide', 'lift', 'place']
         self.fake = Faker()
         self.video_eval = video_eval
@@ -127,12 +131,16 @@ class FrameGapLeRobotDataset(LeRobotDataset):
                 seq_item[key] = torch.stack(value)
             elif key == "state":
                 seq_item[key] = torch.stack(value)
-            elif key == "reward":
-                progress_list = torch.stack(value).squeeze(-1)
+            elif key == "subtask_idx":
+                subtask_list = torch.stack(value).squeeze(-1).float()
+            elif key == "dense_rewards":
+                dense_reward_list = torch.stack(value).squeeze(-1).float()
             else:
                 seq_item[key] = value[0]
             del value
         del sequence
+
+        progress_list = subtask_list + dense_reward_list
 
         # Query video frames
         obs_ts_range = self.timestamp_tensor[obs_indices].tolist()
