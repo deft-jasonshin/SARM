@@ -19,7 +19,7 @@ class FrameGapLeRobotDataset(LeRobotDataset):
         root: str | Path | None = None,
         image_transforms: Callable | None = None,
         delta_timestamps: dict[list[float]] | None = None,
-        tolerance_s: float = 1e-4,
+        tolerance_s: float = 10,
         revision: str | None = None,
         force_cache_sync: bool = False,
         download_videos: bool = True,
