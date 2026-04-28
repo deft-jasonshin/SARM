@@ -68,53 +68,57 @@ class SARMWorkspace:
         )
 
         # --- data ---
-        valid_episodes_sparse = get_valid_episodes(cfg.general.repo_id_sparse)
-        train_eps_sparse, val_eps_sparse = split_train_eval_episodes(valid_episodes_sparse, 1 - cfg.train.val_portion, seed=cfg.general.seed)
-        valid_episodes_dense = get_valid_episodes(cfg.general.repo_id_dense)
-        train_eps_dense, val_eps_dense = split_train_eval_episodes(valid_episodes_dense, 1 - cfg.train.val_portion, seed=cfg.general.seed)
+        train_mode = getattr(cfg.train, "train_mode", "both")
+        use_sparse = train_mode in ("sparse", "both")
+        use_dense = train_mode in ("dense", "both")
 
-        dataset_train_sparse = FrameGapLeRobotDataset(repo_id=cfg.general.repo_id_sparse, 
-                                               episodes=train_eps_sparse, 
-                                               n_obs_steps=cfg.model.n_obs_steps, 
-                                               frame_gap=cfg.model.frame_gap,
-                                               max_rewind_steps=cfg.model.max_rewind_steps,
-                                               image_names=cfg.general.camera_names,
-                                               annotation_list=cfg.model.sparse_annotation_list,
-                                               task_name=cfg.general.task_name)
+        if use_sparse:
+            valid_episodes_sparse = get_valid_episodes(cfg.general.repo_id_sparse)
+            train_eps_sparse, val_eps_sparse = split_train_eval_episodes(valid_episodes_sparse, 1 - cfg.train.val_portion, seed=cfg.general.seed)
+            dataset_train_sparse = FrameGapLeRobotDataset(repo_id=cfg.general.repo_id_sparse, 
+                                                   root=cfg.general.repo_id_sparse,
+                                                   episodes=train_eps_sparse, 
+                                                   n_obs_steps=cfg.model.n_obs_steps, 
+                                                   frame_gap=cfg.model.frame_gap,
+                                                   max_rewind_steps=cfg.model.max_rewind_steps,
+                                                   image_names=cfg.general.camera_names,
+                                                   annotation_list=cfg.model.sparse_annotation_list,
+                                                   task_name=cfg.general.task_name)
+            dataset_val_sparse = FrameGapLeRobotDataset(repo_id=cfg.general.repo_id_sparse, 
+                                                   root=cfg.general.repo_id_sparse,
+                                                   episodes=val_eps_sparse, 
+                                                   n_obs_steps=cfg.model.n_obs_steps, 
+                                                   frame_gap=cfg.model.frame_gap,
+                                                   max_rewind_steps=cfg.model.max_rewind_steps,
+                                                   image_names=cfg.general.camera_names,
+                                                   annotation_list=cfg.model.sparse_annotation_list,
+                                                   task_name=cfg.general.task_name)
+            dataloader_train_sparse = torch.utils.data.DataLoader(dataset_train_sparse, **cfg.dataloader)
+            dataloader_val_sparse   = torch.utils.data.DataLoader(dataset_val_sparse, **cfg.val_dataloader)
 
-        dataset_train_dense = FrameGapLeRobotDataset(repo_id=cfg.general.repo_id_dense, 
-                                               episodes=train_eps_dense, 
-                                               n_obs_steps=cfg.model.n_obs_steps, 
-                                               frame_gap=cfg.model.frame_gap,
-                                               max_rewind_steps=cfg.model.max_rewind_steps,
-                                               image_names=cfg.general.camera_names,
-                                               annotation_list=cfg.model.dense_annotation_list,
-                                               task_name=cfg.general.task_name)
-
-        dataset_val_sparse = FrameGapLeRobotDataset(repo_id=cfg.general.repo_id_sparse, 
-                                               episodes=val_eps_sparse, 
-                                               n_obs_steps=cfg.model.n_obs_steps, 
-                                               frame_gap=cfg.model.frame_gap,
-                                               max_rewind_steps=cfg.model.max_rewind_steps,
-                                               image_names=cfg.general.camera_names,
-                                               annotation_list=cfg.model.sparse_annotation_list,
-                                               task_name=cfg.general.task_name)
-        
-        dataset_val_dense = FrameGapLeRobotDataset(repo_id=cfg.general.repo_id_dense, 
-                                               episodes=val_eps_dense, 
-                                               n_obs_steps=cfg.model.n_obs_steps, 
-                                               frame_gap=cfg.model.frame_gap,
-                                               max_rewind_steps=cfg.model.max_rewind_steps,
-                                               image_names=cfg.general.camera_names,
-                                               annotation_list=cfg.model.dense_annotation_list,
-                                               task_name=cfg.general.task_name)
-
-        dataloader_train_sparse = torch.utils.data.DataLoader(dataset_train_sparse, **cfg.dataloader)
-        dataloader_val_sparse   = torch.utils.data.DataLoader(dataset_val_sparse, **cfg.val_dataloader)
-        dataloader_rollout_sparse = torch.utils.data.DataLoader(dataset_val_sparse, **cfg.rollout_dataloader)
-        dataloader_train_dense = torch.utils.data.DataLoader(dataset_train_dense, **cfg.dataloader)
-        dataloader_val_dense   = torch.utils.data.DataLoader(dataset_val_dense, **cfg.val_dataloader)
-        dataloader_rollout_dense = torch.utils.data.DataLoader(dataset_val_dense, **cfg.rollout_dataloader)
+        if use_dense:
+            valid_episodes_dense = get_valid_episodes(cfg.general.repo_id_dense)
+            train_eps_dense, val_eps_dense = split_train_eval_episodes(valid_episodes_dense, 1 - cfg.train.val_portion, seed=cfg.general.seed)
+            dataset_train_dense = FrameGapLeRobotDataset(repo_id=cfg.general.repo_id_dense, 
+                                                   root=cfg.general.repo_id_dense,
+                                                   episodes=train_eps_dense, 
+                                                   n_obs_steps=cfg.model.n_obs_steps, 
+                                                   frame_gap=cfg.model.frame_gap,
+                                                   max_rewind_steps=cfg.model.max_rewind_steps,
+                                                   image_names=cfg.general.camera_names,
+                                                   annotation_list=cfg.model.dense_annotation_list,
+                                                   task_name=cfg.general.task_name)
+            dataset_val_dense = FrameGapLeRobotDataset(repo_id=cfg.general.repo_id_dense, 
+                                                   root=cfg.general.repo_id_dense,
+                                                   episodes=val_eps_dense, 
+                                                   n_obs_steps=cfg.model.n_obs_steps, 
+                                                   frame_gap=cfg.model.frame_gap,
+                                                   max_rewind_steps=cfg.model.max_rewind_steps,
+                                                   image_names=cfg.general.camera_names,
+                                                   annotation_list=cfg.model.dense_annotation_list,
+                                                   task_name=cfg.general.task_name)
+            dataloader_train_dense = torch.utils.data.DataLoader(dataset_train_dense, **cfg.dataloader)
+            dataloader_val_dense   = torch.utils.data.DataLoader(dataset_val_dense, **cfg.val_dataloader)
         state_normalizer = get_normalizer_from_calculated(cfg.general.state_norm_path, self.device)
 
         # --- encoders ---
@@ -324,8 +328,16 @@ class SARMWorkspace:
                         "train/lr": subtask_scheduler.get_last_lr()[0],
                     }
 
-        dense_iter_train = infinite_loader(dataloader_train_dense)
-        dense_iter_val = infinite_loader(dataloader_val_dense)
+        if use_dense:
+            dense_iter_train = infinite_loader(dataloader_train_dense)
+            dense_iter_val = infinite_loader(dataloader_val_dense)
+
+        if use_sparse:
+            primary_train_loader = dataloader_train_sparse
+            primary_val_loader = dataloader_val_sparse
+        else:
+            primary_train_loader = dataloader_train_dense
+            primary_val_loader = dataloader_val_dense
         
         # ==================== training loop ==================================
         best_val = float("inf")
@@ -333,23 +345,33 @@ class SARMWorkspace:
         
         for epoch in range(1, cfg.train.num_epochs + 1):
             subtask_model.train(); stage_model.train()
-            with tqdm(dataloader_train_sparse, desc=f"Epoch {epoch}") as pbar:
-                for sparse_batch in pbar:
-                    dense_batch = next(dense_iter_train)
-                    sparse_batch = adapt_lerobot_batch_sarm(sparse_batch, camera_names=cfg.general.camera_names)
-                    dense_batch = adapt_lerobot_batch_sarm(dense_batch, camera_names=cfg.general.camera_names)
-
-                    sparse_result = train_step(sparse_batch, anno_type="sparse")
-                    dense_result = train_step(dense_batch, anno_type="dense")
+            with tqdm(primary_train_loader, desc=f"Epoch {epoch}") as pbar:
+                for primary_batch in pbar:
+                    if use_sparse:
+                        sparse_batch = adapt_lerobot_batch_sarm(primary_batch, camera_names=cfg.general.camera_names)
+                        sparse_result = train_step(sparse_batch, anno_type="sparse")
+                    if use_dense:
+                        if train_mode == "both":
+                            dense_batch = adapt_lerobot_batch_sarm(next(dense_iter_train), camera_names=cfg.general.camera_names)
+                        else:
+                            dense_batch = adapt_lerobot_batch_sarm(primary_batch, camera_names=cfg.general.camera_names)
+                        dense_result = train_step(dense_batch, anno_type="dense")
 
                     if step % cfg.train.log_every == 0:
-                        log_data_sparse = {f"sparse/{k}": v for k, v in sparse_result.items()}
-                        log_data_dense = {f"dense/{k}": v for k, v in dense_result.items()}
-                        wandb.log(log_data_sparse, step=step)
-                        wandb.log(log_data_dense, step=step)
-                        
-                    stage_loss = (sparse_result["train/stage_loss"] + dense_result["train/stage_loss"])/2
-                    subtask_loss = (sparse_result["train/subtask_loss"] + dense_result["train/subtask_loss"])/2
+                        if use_sparse:
+                            wandb.log({f"sparse/{k}": v for k, v in sparse_result.items()}, step=step)
+                        if use_dense:
+                            wandb.log({f"dense/{k}": v for k, v in dense_result.items()}, step=step)
+
+                    if train_mode == "both":
+                        stage_loss = (sparse_result["train/stage_loss"] + dense_result["train/stage_loss"])/2
+                        subtask_loss = (sparse_result["train/subtask_loss"] + dense_result["train/subtask_loss"])/2
+                    elif train_mode == "sparse":
+                        stage_loss = sparse_result["train/stage_loss"]
+                        subtask_loss = sparse_result["train/subtask_loss"]
+                    else:
+                        stage_loss = dense_result["train/stage_loss"]
+                        subtask_loss = dense_result["train/subtask_loss"]
                     pbar.set_postfix(loss=f"{(stage_loss + subtask_loss):.4f}")
 
                     if step % cfg.train.save_every == 0:
@@ -364,23 +386,32 @@ class SARMWorkspace:
                 total_loss, num = 0.0, 0
                 print("running validation...")
                 with torch.no_grad():
-                    for sparse_batch in dataloader_val_sparse:
-                        dense_batch = next(dense_iter_val)
-                        sparse_batch = adapt_lerobot_batch_sarm(sparse_batch, camera_names=cfg.general.camera_names)
-                        dense_batch = adapt_lerobot_batch_sarm(dense_batch, camera_names=cfg.general.camera_names)
-
-                        sparse_result = valid_step(sparse_batch, anno_type="sparse")
-                        dense_result = valid_step(dense_batch, anno_type="dense")
+                    for primary_batch in primary_val_loader:
+                        if use_sparse:
+                            sparse_batch = adapt_lerobot_batch_sarm(primary_batch, camera_names=cfg.general.camera_names)
+                            sparse_result = valid_step(sparse_batch, anno_type="sparse")
+                        if use_dense:
+                            if train_mode == "both":
+                                dense_batch = adapt_lerobot_batch_sarm(next(dense_iter_val), camera_names=cfg.general.camera_names)
+                            else:
+                                dense_batch = adapt_lerobot_batch_sarm(primary_batch, camera_names=cfg.general.camera_names)
+                            dense_result = valid_step(dense_batch, anno_type="dense")
 
                         if step % cfg.train.log_every == 0:
-                            log_data_sparse = {f"sparse/{k}": v for k, v in sparse_result.items()}
-                            log_data_dense = {f"dense/{k}": v for k, v in dense_result.items()}
-                            wandb.log(log_data_sparse, step=step)
-                            wandb.log(log_data_dense, step=step)
-                            
-                        stage_loss = (sparse_result["train/stage_loss"] + dense_result["train/stage_loss"])/2
-                        subtask_loss = (sparse_result["train/subtask_loss"] + dense_result["train/subtask_loss"])/2
-                        pbar.set_postfix(loss=f"{(stage_loss + subtask_loss):.4f}")
+                            if use_sparse:
+                                wandb.log({f"sparse/{k}": v for k, v in sparse_result.items()}, step=step)
+                            if use_dense:
+                                wandb.log({f"dense/{k}": v for k, v in dense_result.items()}, step=step)
+
+                        if train_mode == "both":
+                            stage_loss = (sparse_result["train/stage_loss"] + dense_result["train/stage_loss"])/2
+                            subtask_loss = (sparse_result["train/subtask_loss"] + dense_result["train/subtask_loss"])/2
+                        elif train_mode == "sparse":
+                            stage_loss = sparse_result["train/stage_loss"]
+                            subtask_loss = sparse_result["train/subtask_loss"]
+                        else:
+                            stage_loss = dense_result["train/stage_loss"]
+                            subtask_loss = dense_result["train/subtask_loss"]
 
                         total_loss += (stage_loss + subtask_loss)
                         num += 1

@@ -1,12 +1,11 @@
-_target_: workspace.doowon_task2_ws.DoowonTask2Workspace
+_target_: workspace.sarm_ws.SARMWorkspace
 
 cfg:
   general:
-    # dataset specific
     project_name: "reward_doowon_task2"
     task_name: "doowon_task2"
-    repo_id_sparse: PATH_TO_YOUR/SPARSE_LEROBOT_DATASET"  # path to the huggingface lerobot dataset: USR_NAME/DATASET
-    repo_id_dense: PATH_TO_YOUR/DENSE_LEROBOT_DATASET"    # path to the huggingface lerobot dataset: USR_NAME/DATASET
+    repo_id_sparse: "/home/ubuntu/dataset-0422"
+    repo_id_dense: "/home/ubuntu/dataset-0422"
     state_norm_path: PATH_TO_YOUR/NORM_STATS # path to the task specific norm stats file, example can be found at "assets/fold_tshirt.json"
     camera_names:  [top_camera-images-rgb]
     seed: 42
@@ -79,6 +78,7 @@ cfg:
     total_steps: 150_000
 
   train:
+    train_mode: "sparse"     # "sparse", "dense", or "both"
     num_epochs: 5
     grad_clip: 1.0
     log_every: 4000          # steps

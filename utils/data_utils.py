@@ -75,7 +75,11 @@ def get_valid_episodes(repo_id: str) -> List[int]:
     Returns:
         List[int]: Sorted list of valid episode indices (e.g., [0, 1, 5, 7, ...])
     """
-    base_path = Path.home() / ".cache" / "huggingface" / "lerobot" / repo_id / "data"
+    repo_path = Path(repo_id)
+    if repo_path.is_absolute():
+        base_path = repo_path / "data"
+    else:
+        base_path = Path.home() / ".cache" / "huggingface" / "lerobot" / repo_id / "data"
     episode_pattern = re.compile(r"episode_(\d+)\.parquet")
 
     valid_episodes = []
